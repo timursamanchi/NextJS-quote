@@ -31,3 +31,39 @@ docker run -d \
 docker build --no-cache -t quote-redis:abc ./quote-redis 
 docker build --no-cache -t quote-backend:abc ./quote-backend 
 docker build --no-cache -t quote-frontend:abc ./quote-frontend
+
+
+
+# What’s there?
+kubectl get all -n quote-app
+
+# Describe the Deployment + Service
+kubectl describe deploy/quote-redis -n quote-app
+kubectl describe svc/quote-redis -n quote-app
+
+# Pod details/logs
+kubectl get pods -n quote-app -o wide
+kubectl describe pod/<pod-name> -n quote-app
+kubectl logs <pod-name> -n quote-app
+
+# Endpoints wired up?
+kubectl get endpoints quote-redis -n quote-app
+kubectl describe endpoints/quote-redis -n quote-app
+
+# PVC/PV info
+kubectl describe pvc/redis-data -n quote-app
+kubectl get pv | grep redis
+
+
+Easiest way on Minikube: use the built-in addon.
+
+# enable it
+minikube addons enable metrics-server
+
+# confirm it's up
+kubectl -n kube-system rollout status deploy/metrics-server
+kubectl get apiservices | grep metrics
+
+# quick sanity checks
+kubectl top nodes
+kubectl top pods -A
