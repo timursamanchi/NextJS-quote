@@ -1,0 +1,31 @@
+# template: redis-pvc.yaml
+{{- if .Values.pvc.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "redis-pvc.fullname" . }}
+  labels:
+    {{- include "redis-pvc.labels" . | nindent 4 }}
+    {{- with .Values.pvc.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.pvc.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- toYaml .Values.pvc.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.pvc.storage }}
+  {{- with .Values.pvc.selector }}
+  selector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if .Values.pvc.storageClassName }}
+  {{- if ne .Values.pvc.storageClassName "-" }}
+  storageClassName: {{ .Values.pvc.storageClassName | quote }}
+  {{- end }}
+  {{- end }}
+{{- end }}

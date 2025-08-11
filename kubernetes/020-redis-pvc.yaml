@@ -1,4 +1,4 @@
-# 05-redis-pvc.yaml
+# 02-redis-pvc.yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

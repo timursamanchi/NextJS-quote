@@ -1,0 +1,84 @@
+# template: redis-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "quote-app.redis.fullname" . }}
+  labels:
+    {{- include "quote-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+    {{- with .Values.redis.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.redis.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "quote-app.redis.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "quote-app.labels" . | nindent 8 }}
+        {{- include "quote-app.redis.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: redis
+        {{- with .Values.redis.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.redis.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: redis
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          ports:
+            - name: redis
+              containerPort: {{ .Values.redis.containerPort }}
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.redis.containerPort }}
+            initialDelaySeconds: {{ .Values.redis.readinessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.redis.readinessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.redis.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.redis.readinessProbe.failureThreshold }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.redis.containerPort }}
+            initialDelaySeconds: {{ .Values.redis.livenessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.redis.livenessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.redis.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.redis.livenessProbe.failureThreshold }}
+          {{- if or .Values.redis.persistence.existingClaim .Values.pvc.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.redis.persistence.mountPath }}
+          {{- end }}
+      {{- if or .Values.redis.persistence.existingClaim .Values.pvc.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            {{- if .Values.redis.persistence.existingClaim }}
+            claimName: {{ .Values.redis.persistence.existingClaim }}
+            {{- else }}
+            claimName: {{ include "redis-pvc.fullname" . }}
+            {{- end }}
+      {{- end }}
+      {{- with .Values.redis.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

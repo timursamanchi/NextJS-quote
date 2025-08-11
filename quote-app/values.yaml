@@ -1,0 +1,70 @@
+nameOverride: ""
+fullnameOverride: ""
+
+pvc:
+  enabled: true
+  annotations: {}
+  labels: {}
+  accessModes: [ "ReadWriteOnce" ]
+  storage: 2Gi
+  # Leave empty to use the cluster's default StorageClass.
+  # Set to "-" to explicitly remove the field (some clusters treat empty and unset differently).
+  storageClassName: ""
+  # Optional selector (rare for dynamic provisioning; normally omit)
+  selector: {}
+
+# --- Redis Deployment ---
+redis:
+  replicaCount: 1
+
+  labels: {}          # extra labels on the Deployment
+  podLabels: {}       # extra labels on Pod template
+  podAnnotations: {}  # e.g., for Prometheus scraping
+
+  image:
+    repository: timursamanchi/quote-redis
+    tag: abc
+    pullPolicy: Always
+
+  containerPort: 6379
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  readinessProbe:
+    initialDelaySeconds: 5
+    timeoutSeconds: 2
+    periodSeconds: 10
+    failureThreshold: 3
+
+  livenessProbe:
+    initialDelaySeconds: 10
+    timeoutSeconds: 2
+    periodSeconds: 15
+    failureThreshold: 3
+
+  persistence:
+    # If you have a pre-made PVC, put its name here and set pvc.enabled=false.
+    existingClaim: ""
+    mountPath: /data
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 6379
+    targetPort: 6379
+    annotations: {}
+    labels: {}
+
+# If you need private registries:
+imagePullSecrets: []
+# - name: my-regcred

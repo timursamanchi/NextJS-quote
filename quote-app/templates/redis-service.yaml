@@ -1,0 +1,23 @@
+# templates/redis-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "quote-app.redis.fullname" . }}
+  labels:
+    {{- include "quote-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+    {{- with .Values.redis.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.redis.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.redis.service.type }}
+  ports:
+    - name: redis
+      port: {{ .Values.redis.service.port }}
+      targetPort: {{ .Values.redis.service.targetPort }}
+  selector:
+    {{- include "quote-app.redis.selectorLabels" . | nindent 4 }}

@@ -67,3 +67,37 @@ kubectl get apiservices | grep metrics
 # quick sanity checks
 kubectl top nodes
 kubectl top pods -A
+
+
+
+
+# 1️⃣ Clean up any leftover release & namespace from old attempts
+helm uninstall quote-app -n quote-app || true
+kubectl delete ns quote-app --wait || true
+
+# 2️⃣ Deploy fresh with Helm
+helm upgrade --install quote-app ./quote-app \
+  --namespace quote-app \
+  --create-namespace
+
+# 3️⃣ Watch pod startup
+kubectl get pods -n quote-app -w
+
+
+Since it’s up, do a super‑quick sanity sweep:
+
+# 1) PVC actually bound?
+kubectl -n quote-app get pvc,pv
+
+# 2) Service wired up?
+kubectl -n quote-app get svc
+kubectl -n quote-app describe svc quote-app-redis
+
+# 3) Volume mounted in the pod?
+POD=$(kubectl -n quote-app get pod -l app.kubernetes.io/name=redis -o jsonpath='{.items[0].metadata.name}')
+kubectl -n quote-app exec -it "$POD" -- sh -lc 'df -h /data && ls -al /data'
+
+# 4) Can we PING Redis from inside the cluster?
+kubectl -n quote-app run redis-tester --rm -it --restart=Never --image=redis:7-alpine -- \
+  sh -lc "redis-cli -h quote-app-redis PING"
+# expect: PONG
