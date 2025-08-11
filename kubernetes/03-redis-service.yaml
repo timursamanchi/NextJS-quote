@@ -1,4 +1,4 @@
-# 04-redis_service.yaml
+# 03-redis_service.yaml
 apiVersion: v1
 kind: Service
 metadata:
