@@ -65,3 +65,17 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/version: {{ .Chart.AppVersion }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
+
+#------- backend-hpa -----------
+{{- define "quote-app.backend.name" -}}
+backend
+{{- end }}
+
+{{- define "quote-app.backend.fullname" -}}
+{{- printf "%s-%s" (include "quote-app.fullname" .) (include "quote-app.backend.name" .) | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "quote-app.backend.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "quote-app.backend.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

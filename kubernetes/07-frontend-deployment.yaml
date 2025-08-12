@@ -1,26 +1,26 @@
-# 04-backend-deployment.yaml
+# 05-backend-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: quote-backend
+  name: quote-frontend
   namespace: quote-app
   labels:
-    app: quote-backend
+    app: quote-frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: quote-backend
+      app: quote-frontend
   template:
     metadata:
       labels:
-        app: quote-backend
+        app: quote-frontend
     spec:
       containers:
-        - name: backend
-          image: timursamanchi/quote-backend:abc
+        - name: frontend
+          image: timursamanchi/quote-frontend:abc
           ports:
-            - containerPort: 8080
+            - containerPort: 80
           resources:
             requests:
               cpu: "100m"
@@ -31,16 +31,16 @@ spec:
           imagePullPolicy: Always
           readinessProbe:
             httpGet:
-              path: /quote
-              port: 8080
+              path: /
+              port: 80
             initialDelaySeconds: 5
             timeoutSeconds: 2
             periodSeconds: 10
             failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /quote
-              port: 8080
+              path: /
+              port: 80
             initialDelaySeconds: 10
             timeoutSeconds: 2
             periodSeconds: 15
